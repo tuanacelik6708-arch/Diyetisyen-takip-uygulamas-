@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriTrack Pro - Diyetisyen Takip Sistemi</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome İkonlar -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-brand-200 selection:text-brand-900">
+
+    <!-- Bildirim (Toast) Mesaj Kutusu -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Uygulama Ana İskeleti -->
+    <div class="min-h-screen flex flex-col md:flex-row">
+
+        <!-- Mobil Üst Menü -->
+        <header class="md:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center shadow-sm">
+                    <i class="fa-solid fa-leaf text-lg"></i>
+                </div>
+                <span class="font-bold text-lg text-slate-800 tracking-tight">NutriTrack<span class="text-brand-600">Pro</span></span>
+            </div>
+            <button id="mobile-menu-btn" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100 focus:outline-none">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+        </header>
+
+        <!-- Sol Kenar Çubuğu (Sidebar) -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 transform -translate-x-full md:translate-x-0 md:static transition-transform duration-200 ease-in-out flex flex-col justify-between">
+            <div>
+                <!-- Logo Alanı -->
+                <div class="h-16 px-6 flex items-center gap-3 border-b border-slate-100">
+                    <div class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center shadow-md shadow-brand-200">
+                        <i class="fa-solid fa-leaf text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg text-slate-800 leading-none">NutriTrack<span class="text-brand-600">Pro</span></h1>
+                        <span class="text-[11px] font-medium text-slate-400">Klinik Diyetisyen Paneli</span>
+                    </div>
+                </div>
+
+                <!-- Navigasyon Linkleri -->
+                <nav class="p-4 space-y-1.5">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all bg-brand-50 text-brand-700">
+                        <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+                        Genel Bakış
+                    </button>
+                    <button onclick="switchTab('appointments')" id="nav-appointments" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all">
+                        <i class="fa-regular fa-calendar-check w-5 text-center"></i>
+                        Randevu Takip Sistemi
+                    </button>
+                    <button onclick="switchTab('assessment')" id="nav-assessment" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all">
+                        <i class="fa-solid fa-clipboard-user w-5 text-center"></i>
+                        Danışan Değerlendirme
+                    </button>
+                    <button onclick="switchTab('clients')" id="nav-clients" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all">
+                        <i class="fa-solid fa-users w-5 text-center"></i>
+                        Danışan Dosyaları
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Alt Bilgi Kartı -->
+            <div class="p-4 border-t border-slate-100">
+                <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200/60 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center shrink-0">
+                        Dyt
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-sm font-semibold text-slate-800 truncate">Dyt. Elif Yılmaz</p>
+                        <p class="text-xs text-slate-500 truncate">Beslenme ve Diyet Uzmanı</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Mobil Arka Plan Karartma -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-slate-900/40 z-30 hidden md:hidden backdrop-blur-xs"></div>
+
+        <!-- Ana İçerik Alanı -->
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+
+            <!-- 1. SEKME: GENEL BAKIŞ (DASHBOARD) -->
+            <section id="tab-dashboard" class="tab-content space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">Hoş Geldiniz, Dyt. Elif</h2>
+                        <p class="text-sm text-slate-500 mt-0.5">Günlük randevu özetiniz ve aktif danışan durumları aşağıdadır.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="switchTab('appointments'); openAppointmentModal();" class="px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-medium shadow-xs transition flex items-center gap-2">
+                            <i class="fa-solid fa-plus text-brand-600"></i> Yeni Randevu
+                        </button>
+                        <button onclick="switchTab('assessment')" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium shadow-sm shadow-brand-200 transition flex items-center gap-2">
+                            <i class="fa-solid fa-file-medical"></i> Değerlendirme Başlat
+                        </button>
+                    </div>
+                </div>
+
+                <!-- İstatistik Kartları -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-slate-500">Toplam Danışan</span>
+                            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                                <i class="fa-solid fa-user-group"></i>
+                            </div>
+                        </div>
+                        <p id="stat-total-clients" class="text-3xl font-bold text-slate-800 mt-3">4</p>
+                        <span class="text-xs text-emerald-600 font-medium mt-1 inline-block"><i class="fa-solid fa-arrow-trend-up mr-1"></i>Aktif takipli</span>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-slate-500">Yaklaşan Randevular</span>
+                            <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center">
+                                <i class="fa-regular fa-calendar-check"></i>
+                            </div>
+                        </div>
+                        <p id="stat-upcoming-appts" class="text-3xl font-bold text-slate-800 mt-3">3</p>
+                        <span class="text-xs text-slate-500 mt-1 inline-block">Planlanmış görüşme</span>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-slate-500">Tamamlanan Formlar</span>
+                            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                                <i class="fa-solid fa-clipboard-check"></i>
+                            </div>
+                        </div>
+                        <p id="stat-total-assessments" class="text-3xl font-bold text-slate-800 mt-3">2</p>
+                        <span class="text-xs text-slate-500 mt-1 inline-block">Klinik değerlendirme</span>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-slate-500">Yüksek Duygusal Yeme</span>
+                            <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                                <i class="fa-solid fa-heart-pulse"></i>
+                            </div>
+                        </div>
+                        <p id="stat-emotional-risk" class="text-3xl font-bold text-slate-800 mt-3">1</p>
+                        <span class="text-xs text-rose-600 font-medium mt-1 inline-block">Özel davranışsal takip</span>
+                    </div>
+                </div>
+
+                <!-- Alt Paneller: Yaklaşan Randevular ve Son Değerlendirmeler -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Yaklaşan Randevular Özeti -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-slate-800">Yaklaşan Randevular</h3>
+                            <button onclick="switchTab('appointments')" class="text-xs font-semibold text-brand-600 hover:text-brand-700">Tümünü Gör &rarr;</button>
+                        </div>
+                        <div id="dashboard-appt-list" class="space-y-3">
+                            <!-- JS ile doldurulacak -->
+                        </div>
+                    </div>
+
+                    <!-- Son Değerlendirme Kayıtları -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-slate-800">Son Danışan Değerlendirmeleri</h3>
+                            <button onclick="switchTab('clients')" class="text-xs font-semibold text-brand-600 hover:text-brand-700">Dosyalara Git &rarr;</button>
+                        </div>
+                        <div id="dashboard-client-list" class="space-y-3">
+                            <!-- JS ile doldurulacak -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. SEKME: RANDEVU TAKİP SİSTEMİ -->
+            <section id="tab-appointments" class="tab-content hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">Randevu Takip Sistemi</h2>
+                        <p class="text-sm text-slate-500 mt-0.5">Klinik ve online danışan randevularını planlayın, durumlarını güncelleyin.</p>
+                    </div>
+                    <button onclick="openAppointmentModal()" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium shadow-sm transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-calendar-plus"></i> Yeni Randevu Oluştur
+                    </button>
+                </div>
+
+                <!-- Filtreleme ve Arama Çubuğu -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row gap-3 justify-between">
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="filterAppointments('all')" class="appt-filter-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-white transition" data-filter="all">Tümü</button>
+                        <button onclick="filterAppointments('Bekliyor')" class="appt-filter-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition" data-filter="Bekliyor">Bekleyenler</button>
+                        <button onclick="filterAppointments('Tamamlandı')" class="appt-filter-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition" data-filter="Tamamlandı">Tamamlananlar</button>
+                        <button onclick="filterAppointments('İptal')" class="appt-filter-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition" data-filter="İptal">İptal Edilenler</button>
+                    </div>
+                    <div class="relative w-full sm:w-64">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="appt-search" onkeyup="renderAppointments()" placeholder="Danışan adı ara..." class="w-full pl-9 pr-3 py-1.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                    </div>
+                </div>
+
+                <!-- Randevu Listesi Tablosu -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50/80 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                    <th class="py-3.5 px-5">Danışan</th>
+                                    <th class="py-3.5 px-5">Tarih & Saat</th>
+                                    <th class="py-3.5 px-5">Görüşme Türü</th>
+                                    <th class="py-3.5 px-5">Not</th>
+                                    <th class="py-3.5 px-5">Durum</th>
+                                    <th class="py-3.5 px-5 text-right">İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="appointments-table-body" class="divide-y divide-slate-100 text-sm">
+                                <!-- JS ile doldurulacak -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. SEKME: DANIŞAN DEĞERLENDİRME FORMU -->
+            <section id="tab-assessment" class="tab-content hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">Kapsamlı Danışan Değerlendirme Formu</h2>
+                        <p class="text-sm text-slate-500 mt-0.5">Antropometrik ölçümler, 24 saatlik besin tüketimi ve duygusal yeme analizini kaydedin.</p>
+                    </div>
+                    <button type="button" onclick="resetAssessmentForm()" class="px-3.5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl text-xs font-semibold transition self-start sm:self-auto">
+                        <i class="fa-solid fa-rotate-left mr-1"></i> Formu Temizle
+                    </button>
+                </div>
+
+                <form id="assessment-form" onsubmit="saveAssessment(event)" class="space-y-6">
+                    
+                    <!-- Danışan Temel Bilgileri -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <span class="w-7 h-7 rounded-lg bg-brand-100 text-brand-700 flex items-center justify-center text-xs"><i class="fa-solid fa-id-card"></i></span>
+                            1. Danışan Kimlik ve Klinik Bilgileri
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Ad Soyad *</label>
+                                <input type="text" id="client-name" required placeholder="Örn: Ahmet Demir" class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Yaş *</label>
+                                <input type="number" id="client-age" required min="1" max="120" oninput="calculateAnthropometrics()" placeholder="32" class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Cinsiyet *</label>
+                                <select id="client-gender" onchange="calculateAnthropometrics()" class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500 bg-white">
+                                    <option value="Kadın">Kadın</option>
+                                    <option value="Erkek">Erkek</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Fiziksel Aktivite Düzeyi (PAL)</label>
+                                <select id="client-pal" onchange="calculateAnthropometrics()" class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500 bg-white">
+                                    <option value="1.2">Sedanter / Hareketsiz (1.2)</option>
+                                    <option value="1.375" selected>Hafif Aktif - Haftada 1-3 gün (1.375)</option>
+                                    <option value="1.55">Orta Aktif - Haftada 3-5 gün (1.55)</option>
+                                    <option value="1.725">Çok Aktif - Haftada 6-7 gün (1.725)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alt Form Navigasyon Sekmeleri -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="flex border-b border-slate-200 bg-slate-50/70 overflow-x-auto">
+                            <button type="button" onclick="switchFormSection('antro')" id="fbtn-antro" class="form-sec-btn flex-1 py-3.5 px-4 text-sm font-semibold border-b-2 border-brand-600 text-brand-700 bg-white whitespace-nowrap transition">
+                                <i class="fa-solid fa-ruler-combined mr-2"></i>Antropometrik Ölçümler
+                            </button>
+                            <button type="button" onclick="switchFormSection('food')" id="fbtn-food" class="form-sec-btn flex-1 py-3.5 px-4 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap transition">
+                                <i class="fa-solid fa-utensils mr-2"></i>Besin Tüketim Kaydı (24s)
+                            </button>
+                            <button type="button" onclick="switchFormSection('emotional')" id="fbtn-emotional" class="form-sec-btn flex-1 py-3.5 px-4 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap transition">
+                                <i class="fa-solid fa-brain mr-2"></i>Duygusal Yeme Testi
+                            </button>
+                        </div>
+
+                        <!-- BÖLÜM A: ANTROPOMETRİK ÖLÇÜMLER -->
+                        <div id="fsec-antro" class="form-section p-6 space-y-6">
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <!-- Ölçüm Girişleri -->
+                                <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">Boy Uzunluğu (cm) *</label>
+                                        <input type="number" id="antro-height" required step="0.1" min="50" max="250" oninput="calculateAnthropometrics()" placeholder="168" class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">Vücut Ağırlığı (kg) *</label>
+                                        <input type="number" id="antro-weight" required step="0.1" min="20" max="350" oninput="calculateAnthropometrics()" placeholder="74.5" class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">Bel Çevresi (cm)</label>
+                                        <input type="number" id="antro-waist" step="0.1" oninput="calculateAnthropometrics()" placeholder="84" class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">Kalça Çevresi (cm)</label>
+                                        <input type="number" id="antro-hip" step="0.1" oninput="calculateAnthropometrics()" placeholder="102" class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">Vücut Yağ Oranı (%)</label>
+                                        <input type="number" id="antro-fat" step="0.1" placeholder="28.4" class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">Kas Kütlesi (kg)</label>
+                                        <input type="number" id="antro-muscle" step="0.1" placeholder="48.2" class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                                    </div>
+                                </div>
+
+                                <!-- Otomatik Hesaplama Sonuç Kartı -->
+                                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200/80 flex flex-col justify-between space-y-4">
+                                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Otomatik Klinik Analiz</h4>
+                                    
+                                    <div class="space-y-3">
+                                        <div class="bg-white p-3.5 rounded-xl border border-slate-200/60">
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-xs text-slate-500">Beden Kitle İndeksi (BKİ)</span>
+                                                <span id="calc-bmi-badge" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">Hesaplanmadı</span>
+                                            </div>
+                                            <p id="calc-bmi" class="text-2xl font-bold text-slate-800 mt-1">-- <span class="text-xs font-normal text-slate-400">kg/m²</span></p>
+                                        </div>
+
+                                        <div class="bg-white p-3.5 rounded-xl border border-slate-200/60">
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-xs text-slate-500">Bel / Kalça Oranı</span>
+                                                <span id="calc-whr-badge" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">--</span>
+                                            </div>
+                                            <p id="calc-whr" class="text-xl font-bold text-slate-800 mt-1">--</p>
+                                        </div>
+
+                                        <div class="bg-white p-3.5 rounded-xl border border-slate-200/60">
+                                            <span class="text-xs text-slate-500 block">Bazal Metabolizma Hızı (BMH) / Günlük Enerji</span>
+                                            <div class="flex items-baseline gap-2 mt-1">
+                                                <p id="calc-bmr" class="text-lg font-bold text-brand-700">-- kcal</p>
+                                                <span class="text-xs text-slate-400">/</span>
+                                                <p id="calc-tdee" class="text-sm font-semibold text-slate-600">-- kcal (TEE)</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- BÖLÜM B: BESİN TÜKETİM KAYDI -->
+                        <div id="fsec-food" class="form-section hidden p-6 space-y-5">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-brand-50/70 p-4 rounded-xl border border-brand-100">
+                                <div>
+                                    <h4 class="text-sm font-bold text-brand-900">24 Saatlik Hatırlatma Yöntemi (Besin Tüketim Kaydı)</h4>
+                                    <p class="text-xs text-brand-700 mt-0.5">Danışanın son 24 saatte tükettiği öğünleri, porsiyonları ve tahmini kalorilerini ekleyin.</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-xs text-brand-700 block">Toplam Tüketilen Enerji</span>
+                                    <span id="food-total-kcal" class="text-xl font-bold text-brand-800">0 kcal</span>
+                                </div>
+                            </div>
+
+                            <!-- Öğün Ekleme Satırı -->
+                            <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end bg-slate-50 p-4 rounded-xl border border-slate-200/70">
+                                <div class="sm:col-span-3">
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Öğün Zamanı</label>
+                                    <select id="food-meal" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:border-brand-500">
+                                        <option value="Sabah Kahvaltısı">Sabah Kahvaltısı</option>
+                                        <option value="Kuşluk Ara Öğün">Kuşluk Ara Öğün</option>
+                                        <option value="Öğle Yemeği">Öğle Yemeği</option>
+                                        <option value="İkindi Ara Öğün">İkindi Ara Öğün</option>
+                                        <option value="Akşam Yemeği">Akşam Yemeği</option>
+                                        <option value="Gece Ara Öğün">Gece Ara Öğün</option>
+                                    </select>
+                                </div>
+                                <div class="sm:col-span-4">
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Besin / Yemek Adı</label>
+                                    <input type="text" id="food-name" placeholder="Örn: Haşlanmış yumurta, tam buğday ekmek" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Miktar / Porsiyon</label>
+                                    <input type="text" id="food-portion" placeholder="2 adet / 1 kase" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Enerji (kcal)</label>
+                                    <input type="number" id="food-kcal" placeholder="240" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                                </div>
+                                <div class="sm:col-span-1">
+                                    <button type="button" onclick="addFoodItem()" class="w-full py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-semibold transition flex items-center justify-center">
+                                        <i class="fa-solid fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Eklenen Besinler Tablosu -->
+                            <div class="border border-slate-200 rounded-xl overflow-hidden">
+                                <table class="w-full text-left border-collapse text-sm">
+                                    <thead>
+                                        <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500">
+                                            <th class="py-2.5 px-4">Öğün</th>
+                                            <th class="py-2.5 px-4">Tüketilen Besin</th>
+                                            <th class="py-2.5 px-4">Miktar</th>
+                                            <th class="py-2.5 px-4">Kalori</th>
+                                            <th class="py-2.5 px-4 text-right">Sil</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="food-log-tbody" class="divide-y divide-slate-100">
+                                        <tr>
+                                            <td colspan="5" class="py-6 text-center text-slate-400 text-xs">Henüz besin kaydı eklenmedi. Yukarıdan öğün ekleyebilirsiniz.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Su Tüketimi ve Notlar -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Günlük Su Tüketimi (Litre)</label>
+                                    <input type="number" id="food-water" step="0.1" placeholder="1.5" class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Beslenme Alışkanlığı / Alerji Notları</label>
+                                    <input type="text" id="food-notes" placeholder="Örn: Laktoz hassasiyeti, akşam tatlı isteği..." class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- BÖLÜM C: DUYGUSAL YEME TESTİ -->
+                        <div id="fsec-emotional" class="form-section hidden p-6 space-y-6">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-purple-50/70 p-4 rounded-xl border border-purple-100">
+                                <div>
+                                    <h4 class="text-sm font-bold text-purple-950">Duygusal Yeme Değerlendirme Ölçeği (10 Soru)</h4>
+                                    <p class="text-xs text-purple-800 mt-0.5">Her bir ifadeyi danışanın son 1 aydaki yeme davranışına göre 1 (Hiçbir Zaman) ile 5 (Her Zaman) arasında puanlayın.</p>
+                                </div>
+                                <div class="bg-white px-4 py-2.5 rounded-xl border border-purple-200 text-right shrink-0">
+                                    <span class="text-[11px] font-semibold text-slate-500 block">Duygusal Yeme Skoru</span>
+                                    <div class="flex items-center justify-end gap-2">
+                                        <span id="emo-total-score" class="text-xl font-bold text-purple-700">10 / 50</span>
+                                        <span id="emo-level-badge" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Düşük Eğilim</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 10 Soruluk Test Listesi -->
+                            <div id="emotional-questions-container" class="space-y-3">
+                                <!-- JS tarafından oluşturulacak -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Kaydet Butonu -->
+                    <div class="flex justify-end gap-3">
+                        <button type="submit" class="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-brand-200 transition flex items-center gap-2">
+                            <i class="fa-solid fa-check-circle"></i> Danışan Değerlendirmesini Kaydet
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- 4. SEKME: DANIŞAN DOSYALARI -->
+            <section id="tab-clients" class="tab-content hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">Danışan Dosyaları ve Geçmiş Raporlar</h2>
+                        <p class="text-sm text-slate-500 mt-0.5">Kayıtlı danışanların antropometrik analizlerini, besin günlüklerini ve duygusal yeme skorlarını inceleyin.</p>
+                    </div>
+                    <button onclick="switchTab('assessment')" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium shadow-sm transition flex items-center gap-2 self-start sm:self-auto">
+                        <i class="fa-solid fa-plus"></i> Yeni Danışan Ekle
+                    </button>
+                </div>
+
+                <!-- Danışan Kartları Grid -->
+                <div id="clients-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <!-- JS ile doldurulacak -->
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- MODAL 1: YENİ RANDEVU OLUŞTURMA MODALI -->
+    <div id="appointment-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-100 animate-fade-in">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h3 class="text-lg font-bold text-slate-800">Yeni Randevu Planla</h3>
+                <button onclick="closeAppointmentModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="new-appt-form" onsubmit="addAppointment(event)" class="space-y-4 mt-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Danışan Adı Soyadı *</label>
+                    <input type="text" id="appt-client-name" required placeholder="Örn: Zeynep Kaya" class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Tarih *</label>
+                        <input type="date" id="appt-date" required class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Saat *</label>
+                        <input type="time" id="appt-time" required class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Görüşme Türü</label>
+                    <select id="appt-type" class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:border-brand-500">
+                        <option value="İlk Görüşme (Yüz Yüze)">İlk Görüşme (Yüz Yüze)</option>
+                        <option value="Kontrol Seansı (Yüz Yüze)">Kontrol Seansı (Yüz Yüze)</option>
+                        <option value="Online Diyet Görüşmesi">Online Diyet Görüşmesi</option>
+                        <option value="Vücut Analizi Ölçümü">Vücut Analizi Ölçümü</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Randevu Notu</label>
+                    <textarea id="appt-note" rows="2" placeholder="Örn: Kan tahlili sonuçları incelenecek..." class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500"></textarea>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeAppointmentModal()" class="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition">Vazgeç</button>
+                    <button type="submit" class="px-4 py-2 text-sm font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-xl shadow-sm transition">Randevuyu Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: DANIŞAN DETAY RAPORU MODALI -->
+    <div id="client-detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+        <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-xl border border-slate-100">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                <div>
+                    <h3 id="modal-client-title" class="text-lg font-bold text-slate-800">Danışan Değerlendirme Raporu</h3>
+                    <p id="modal-client-subtitle" class="text-xs text-slate-500">Kayıt Tarihi: --</p>
+                </div>
+                <button onclick="closeClientDetailModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div id="modal-client-body" class="p-6 overflow-y-auto space-y-6 text-sm">
+                <!-- JS ile doldurulacak -->
+            </div>
+            <div class="px-6 py-3.5 border-t border-slate-100 bg-slate-50 rounded-b-2xl flex justify-end">
+                <button onclick="closeClientDetailModal()" class="px-4 py-2 bg-slate-800 text-white text-xs font-semibold rounded-xl hover:bg-slate-700 transition">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT UYGULAMA MANTIĞI -->
+    <script>
+        // --- 1. VERİ VE DURUM YÖNETİMİ (STATE) ---
+        const emotionalQuestions = [
+            "Kendimi üzgün, mutsuz veya depresif hissettiğimde normalden daha fazla yemek yerim.",
+            "Stresli veya gergin olduğum anlarda yemek yemek beni rahatlatır.",
+            "Canım sıkıldığında ya da yapacak bir şey bulamadığımda atıştırmalık ararım.",
+            "Öfkelendiğimde veya hayal kırıklığına uğradığımda kendimi yemek yerken bulurum.",
+            "Yalnızlık hissettiğimde yemek benim için bir teselli kaynağı olur.",
+            "Fiziksel olarak aç olmasam bile duygusal durumum yüzünden yemek yerim.",
+            "Günün yorgunluğunu ve kaygısını atmak için özellikle tatlı/karbonhidratlı besinlere yönelirim.",
+            "Olumsuz bir olay yaşadığımda kontrolümü kaybedip aşırı yemek yediğim olur.",
+            "Yemek yedikten sonra duygusal olarak rahatlarım ancak ardından pişmanlık duyarım.",
+            "Mutlu ve heyecanlı olduğumda da kutlama amacıyla kontrolsüz yemek yerim."
+        ];
+
+        // Örnek Başlangıç Verileri
+        let appointments = [
+            { id: 1, clientName: "Zeynep Kaya", date: "2026-11-12", time: "15:30", type: "İlk Görüşme (Yüz Yüze)", note: "İnsülin direnci takibi ve beslenme planı.", status: "Bekliyor" },
+            { id: 2, clientName: "Mert Aydın", date: "2026-11-13", time: "10:00", type: "Kontrol Seansı (Yüz Yüze)", note: "2. hafta tartım ve yağ ölçümü.", status: "Bekliyor" },
+            { id: 3, clientName: "Selin Arslan", date: "2026-11-14", time: "14:00", type: "Online Diyet Görüşmesi", note: "Sporcu beslenmesi makro güncellemesi.", status: "Bekliyor" },
+            { id: 4, clientName: "Burak Özkan", date: "2026-11-10", time: "11:30", type: "Vücut Analizi Ölçümü", note: "Hedef kiloya ulaşıldı.", status: "Tamamlandı" }
+        ];
+
+        let clients = [
+            {
+                id: 101,
+                date: "10.11.2026",
+                name: "Zeynep Kaya",
+                age: 29,
+                gender: "Kadın",
+                pal: 1.375,
+                antro: { height: 165, weight: 76.2, waist: 86, hip: 104, fat: 31.5, muscle: 47.8, bmi: "28.0", bmiLabel: "Fazla Kilolu", whr: "0.83", bmr: 1502, tdee: 2065 },
+                foodLog: [
+                    { meal: "Sabah Kahvaltısı", name: "2 dilim beyaz peynir, 1 haşlanmış yumurta, 2 dilim ekmek", portion: "1 Porsiyon", kcal: 380 },
+                    { meal: "Öğle Yemeği", name: "Izgara tavuk salata, 1 kase mercimek çorbası", portion: "1 Porsiyon", kcal: 460 },
+                    { meal: "İkindi Ara Öğün", name: "1 paket çikolatalı gofret ve latte", portion: "1 Adet", kcal: 390 },
+                    { meal: "Akşam Yemeği", name: "Zeytinyağlı taze fasulye, 4 kaşık bulgur pilavı, yoğurt", portion: "1 Porsiyon", kcal: 490 }
+                ],
+                water: 1.4,
+                foodNotes: "Akşam saatlerinde stres kaynaklı tatlı yeme isteği mevcut.",
+                emotional: { score: 37, level: "Yüksek Duygusal Yeme", answers: [4, 5, 4, 4, 3, 4, 5, 3, 3, 2] }
+            },
+            {
+                id: 102,
+                date: "08.11.2026",
+                name: "Mert Aydın",
+                age: 35,
+                gender: "Erkek",
+                pal: 1.55,
+                antro: { height: 180, weight: 82.0, waist: 88, hip: 98, fat: 18.2, muscle: 63.5, bmi: "25.3", bmiLabel: "Fazla Kilolu", whr: "0.90", bmr: 1810, tdee: 2805 },
+                foodLog: [
+                    { meal: "Sabah Kahvaltısı", name: "3 yumurtalı omlet, yulaf ezmesi, ceviz", portion: "1 Porsiyon", kcal: 560 },
+                    { meal: "Öğle Yemeği", name: "200g ızgara köfte, basmati pirinç, ayran", portion: "1 Porsiyon", kcal: 740 },
+                    { meal: "Akşam Yemeği", name: "Fırın somon, haşlanmış brokoli ve patates", portion: "1 Porsiyon", kcal: 680 }
+                ],
+                water: 2.8,
+                foodNotes: "Haftada 4 gün ağırlık antrenmanı yapıyor.",
+                emotional: { score: 16, level: "Düşük Eğilim", answers: [1, 2, 2, 1, 1, 2, 2, 1, 2, 2] }
+            }
+        ];
+
+        let currentFoodItems = [];
+        let currentApptFilter = 'all';
+
+        // --- 2. SAYFA YÜKLENDİĞİNDE BAŞLATMA ---
+        window.onload = function() {
+            renderEmotionalQuestions();
+            renderAppointments();
+            renderClients();
+            updateDashboard();
+            
+            // Bugünün tarihini randevu modalına varsayılan ata
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('appt-date').value = today;
+        };
+
+        // --- 3. NAVİGASYON VE MOBİL MENÜ ---
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+        function toggleMobileSidebar() {
+            sidebar.classList.toggle('-translate-x-full');
+            sidebarOverlay.classList.toggle('hidden');
+        }
+
+        mobileMenuBtn.addEventListener('click', toggleMobileSidebar);
+        sidebarOverlay.addEventListener('click', toggleMobileSidebar);
+
+        function switchTab(tabName) {
+            // Tüm içerikleri gizle
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            // Seçili içeriği göster
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+
+            // Navigasyon butonlarını güncelle
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                btn.classList.remove('bg-brand-50', 'text-brand-700');
+                btn.classList.add('text-slate-600', 'hover:bg-slate-50', 'hover:text-slate-900');
+            });
+            const activeBtn = document.getElementById(`nav-${tabName}`);
+            activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-50', 'hover:text-slate-900');
+            activeBtn.classList.add('bg-brand-50', 'text-brand-700');
+
+            // Mobilde menüyü kapat
+            if (!sidebar.classList.contains('-translate-x-full') && window.innerWidth < 768) {
+                toggleMobileSidebar();
+            }
+        }
+
+        // --- 4. BİLDİRİM (TOAST) SİSTEMİ ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-slate-800 text-white' : 'bg-rose-600 text-white';
+            const icon = type === 'success' ? 'fa-circle-check text-brand-400' : 'fa-circle-exclamation text-white';
+
+            toast.className = `${bgColor} px-4 py-3 rounded-xl shadow-lg text-sm font-medium flex items-center gap-2.5 transform transition-all duration-300 translate-y-2 opacity-0 pointer-events-auto`;
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i><span>${message}</span>`;
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // --- 5. GENEL BAKIŞ (DASHBOARD) GÜNCELLEME ---
+        function updateDashboard() {
+            const upcomingAppts = appointments.filter(a => a.status === 'Bekliyor');
+            const highEmotionalCount = clients.filter(c => c.emotional.score >= 31).length;
+
+            document.getElementById('stat-total-clients').innerText = clients.length;
+            document.getElementById('stat-upcoming-appts').innerText = upcomingAppts.length;
+            document.getElementById('stat-total-assessments').innerText = clients.length;
+            document.getElementById('stat-emotional-risk').innerText = highEmotionalCount;
+
+            // Yaklaşan randevular özeti
+            const dashApptList = document.getElementById('dashboard-appt-list');
+            if (upcomingAppts.length === 0) {
+                dashApptList.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">Bekleyen randevu bulunmuyor.</p>`;
+            } else {
+                dashApptList.innerHTML = upcomingAppts.slice(0, 4).map(a => `
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg bg-brand-100 text-brand-700 font-bold text-xs flex items-center justify-center">
+                                ${a.clientName.substring(0, 2).toUpperCase()}
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-slate-800">${a.clientName}</p>
+                                <p class="text-xs text-slate-500">${a.type}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs font-bold text-slate-700 block">${a.time}</span>
+                            <span class="text-[11px] text-slate-400">${formatDateTR(a.date)}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Son değerlendirmeler özeti
+            const dashClientList = document.getElementById('dashboard-client-list');
+            dashClientList.innerHTML = clients.slice(0, 4).map(c => `
+                <div onclick="openClientDetailModal(${c.id})" class="cursor-pointer flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100/80 border border-slate-100 transition">
+                    <div>
+                        <p class="text-sm font-semibold text-slate-800">${c.name} <span class="text-xs font-normal text-slate-400">(${c.age} yaş)</span></p>
+                        <p class="text-xs text-slate-500">BKİ: <strong class="text-slate-700">${c.antro.bmi}</strong> • Duygusal Yeme: <strong class="text-purple-700">${c.emotional.score}/50</strong></p>
+                    </div>
+                    <span class="text-xs font-semibold text-brand-600">İncele &rarr;</span>
+                </div>
+            `).join('');
+        }
+
+        // --- 6. RANDEVU TAKİP SİSTEMİ FONKSİYONLARI ---
+        function openAppointmentModal() {
+            const modal = document.getElementById('appointment-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeAppointmentModal() {
+            const modal = document.getElementById('appointment-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.getElementById('new-appt-form').reset();
+            document.getElementById('appt-date').value = new Date().toISOString().split('T')[0];
+        }
+
+        function addAppointment(e) {
+            e.preventDefault();
+            const newAppt = {
+                id: Date.now(),
+                clientName: document.getElementById('appt-client-name').value.trim(),
+                date: document.getElementById('appt-date').value,
+                time: document.getElementById('appt-time').value,
+                type: document.getElementById('appt-type').value,
+                note: document.getElementById('appt-note').value.trim() || "-",
+                status: "Bekliyor"
+            };
+
+            appointments.unshift(newAppt);
+            closeAppointmentModal();
+            renderAppointments();
+            updateDashboard();
+            showToast(`${newAppt.clientName} için randevu oluşturuldu.`);
+        }
+
+        function filterAppointments(status) {
+            currentApptFilter = status;
+            document.querySelectorAll('.appt-filter-btn').forEach(btn => {
+                if (btn.dataset.filter === status) {
+                    btn.className = "appt-filter-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-white transition";
+                } else {
+                    btn.className = "appt-filter-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
+                }
+            });
+            renderAppointments();
+        }
+
+        function updateAppointmentStatus(id, newStatus) {
+            const appt = appointments.find(a => a.id === id);
+            if (appt) {
+                appt.status = newStatus;
+                renderAppointments();
+                updateDashboard();
+                showToast(`Randevu durumu "${newStatus}" olarak güncellendi.`);
+            }
+        }
+
+        function deleteAppointment(id) {
+            appointments = appointments.filter(a => a.id !== id);
+            renderAppointments();
+            updateDashboard();
+            showToast("Randevu kaydı silindi.", "error");
+        }
+
+        function renderAppointments() {
+            const tbody = document.getElementById('appointments-table-body');
+            const searchQuery = document.getElementById('appt-search').value.toLowerCase();
+
+            const filtered = appointments.filter(a => {
+                const matchesStatus = currentApptFilter === 'all' || a.status === currentApptFilter;
+                const matchesSearch = a.clientName.toLowerCase().includes(searchQuery);
+                return matchesStatus && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400 text-sm">Kriterlere uygun randevu bulunamadı.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(a => {
+                let badgeClass = "bg-amber-50 text-amber-700 border-amber-200";
+                if (a.status === "Tamamlandı") badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200";
+                if (a.status === "İptal") badgeClass = "bg-rose-50 text-rose-700 border-rose-200";
+
+                return `
+                    <tr class="hover:bg-slate-50/70 transition">
+                        <td class="py-3.5 px-5 font-semibold text-slate-800">${a.clientName}</td>
+                        <td class="py-3.5 px-5">
+                            <span class="font-medium text-slate-700">${formatDateTR(a.date)}</span>
+                            <span class="text-xs text-slate-400 ml-1.5 bg-slate-100 px-2 py-0.5 rounded-md">${a.time}</span>
+                        </td>
+                        <td class="py-3.5 px-5 text-slate-600">${a.type}</td>
+                        <td class="py-3.5 px-5 text-slate-500 max-w-xs truncate" title="${a.note}">${a.note}</td>
+                        <td class="py-3.5 px-5">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold border ${badgeClass}">${a.status}</span>
+                        </td>
+                        <td class="py-3.5 px-5 text-right space-x-1">
+                            ${a.status === 'Bekliyor' ? `
+                                <button onclick="updateAppointmentStatus(${a.id}, 'Tamamlandı')" title="Tamamlandı İşaretle" class="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition"><i class="fa-solid fa-check"></i></button>
+                                <button onclick="updateAppointmentStatus(${a.id}, 'İptal')" title="İptal Et" class="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition"><i class="fa-solid fa-ban"></i></button>
+                            ` : ''}
+                            <button onclick="deleteAppointment(${a.id})" title="Sil" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition"><i class="fa-regular fa-trash-can"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // --- 7. DANIŞAN DEĞERLENDİRME FORMU FONKSİYONLARI ---
+        function switchFormSection(secName) {
+            document.querySelectorAll('.form-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`fsec-${secName}`).classList.remove('hidden');
+
+            document.querySelectorAll('.form-sec-btn').forEach(btn => {
+                btn.classList.remove('border-brand-600', 'text-brand-700', 'bg-white');
+                btn.classList.add('border-transparent', 'text-slate-500');
+            });
+            const activeBtn = document.getElementById(`fbtn-${secName}`);
+            activeBtn.classList.remove('border-transparent', 'text-slate-500');
+            activeBtn.classList.add('border-brand-600', 'text-brand-700', 'bg-white');
+        }
+
+        // Antropometrik Hesaplamalar (BKİ, Bel/Kalça, Mifflin-St Jeor BMH)
+        function calculateAnthropometrics() {
+            const height = parseFloat(document.getElementById('antro-height').value);
+            const weight = parseFloat(document.getElementById('antro-weight').value);
+            const waist = parseFloat(document.getElementById('antro-waist').value);
+            const hip = parseFloat(document.getElementById('antro-hip').value);
+            const age = parseInt(document.getElementById('client-age').value);
+            const gender = document.getElementById('client-gender').value;
+            const pal = parseFloat(document.getElementById('client-pal').value);
+
+            const bmiEl = document.getElementById('calc-bmi');
+            const bmiBadge = document.getElementById('calc-bmi-badge');
+            const whrEl = document.getElementById('calc-whr');
+            const whrBadge = document.getElementById('calc-whr-badge');
+            const bmrEl = document.getElementById('calc-bmr');
+            const tdeeEl = document.getElementById('calc-tdee');
+
+            // 1. BKİ Hesabı
+            if (height > 0 && weight > 0) {
+                const heightM = height / 100;
+                const bmi = (weight / (heightM * heightM)).toFixed(1);
+                bmiEl.innerHTML = `${bmi} <span class="text-xs font-normal text-slate-400">kg/m²</span>`;
+
+                let label = "";
+                let color = "";
+                if (bmi < 18.5) { label = "Zayıf"; color = "bg-blue-100 text-blue-700"; }
+                else if (bmi < 25) { label = "Normal Kilolu"; color = "bg-emerald-100 text-emerald-700"; }
+                else if (bmi < 30) { label = "Fazla Kilolu"; color = "bg-amber-100 text-amber-700"; }
+                else { label = "Obez"; color = "bg-rose-100 text-rose-700"; }
+
+                bmiBadge.innerText = label;
+                bmiBadge.className = `text-[11px] font-bold px-2 py-0.5 rounded-full ${color}`;
+            } else {
+                bmiEl.innerHTML = `-- <span class="text-xs font-normal text-slate-400">kg/m²</span>`;
+                bmiBadge.innerText = "Hesaplanmadı";
+                bmiBadge.className = "text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600";
+            }
+
+            // 2. Bel / Kalça Oranı
+            if (waist > 0 && hip > 0) {
+                const whr = (waist / hip).toFixed(2);
+                whrEl.innerText = whr;
+                const isHighRisk = (gender === "Kadın" && whr >= 0.85) || (gender === "Erkek" && whr >= 0.90);
+                whrBadge.innerText = isHighRisk ? "Metabolik Risk Yüksek" : "Normal Aralık";
+                whrBadge.className = isHighRisk 
+                    ? "text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700"
+                    : "text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700";
+            } else {
+                whrEl.innerText = "--";
+                whrBadge.innerText = "--";
+                whrBadge.className = "text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600";
+            }
+
+            // 3. BMH (Mifflin-St Jeor) ve Günlük Enerji (TEE)
+            if (height > 0 && weight > 0 && age > 0) {
+                let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+                bmr += (gender === "Erkek") ? 5 : -161;
+                bmr = Math.round(bmr);
+                const tdee = Math.round(bmr * pal);
+
+                bmrEl.innerText = `${bmr} kcal`;
+                tdeeEl.innerText = `${tdee} kcal (TEE)`;
+            } else {
+                bmrEl.innerText = `-- kcal`;
+                tdeeEl.innerText = `-- kcal (TEE)`;
+            }
+        }
+
+        // Besin Tüketim Kaydı Ekleme / Silme
+        function addFoodItem() {
+            const meal = document.getElementById('food-meal').value;
+            const name = document.getElementById('food-name').value.trim();
+            const portion = document.getElementById('food-portion').value.trim() || "1 Porsiyon";
+            const kcal = parseInt(document.getElementById('food-kcal').value) || 0;
+
+            if (!name) {
+                showToast("Lütfen tüketilen besin adını girin.", "error");
+                return;
+            }
+
+            currentFoodItems.push({ id: Date.now(), meal, name, portion, kcal });
+            document.getElementById('food-name').value = "";
+            document.getElementById('food-portion').value = "";
+            document.getElementById('food-kcal').value = "";
+            renderFoodLog();
+        }
+
+        function removeFoodItem(id) {
+            currentFoodItems = currentFoodItems.filter(item => item.id !== id);
+            renderFoodLog();
+        }
+
+        function renderFoodLog() {
+            const tbody = document.getElementById('food-log-tbody');
+            const totalKcalEl = document.getElementById('food-total-kcal');
+
+            const totalKcal = currentFoodItems.reduce((sum, item) => sum + item.kcal, 0);
+            totalKcalEl.innerText = `${totalKcal} kcal`;
+
+            if (currentFoodItems.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400 text-xs">Henüz besin kaydı eklenmedi. Yukarıdan öğün ekleyebilirsiniz.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = currentFoodItems.map(item => `
+                <tr class="hover:bg-slate-50">
+                    <td class="py-2.5 px-4 font-medium text-brand-700">${item.meal}</td>
+                    <td class="py-2.5 px-4 text-slate-800">${item.name}</td>
+                    <td class="py-2.5 px-4 text-slate-500">${item.portion}</td>
+                    <td class="py-2.5 px-4 font-semibold text-slate-700">${item.kcal} kcal</td>
+                    <td class="py-2.5 px-4 text-right">
+                        <button type="button" onclick="removeFoodItem(${item.id})" class="text-rose-500 hover:text-rose-700 p-1">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Duygusal Yeme Testi Oluşturma ve Skorlama
+        function renderEmotionalQuestions() {
+            const container = document.getElementById('emotional-questions-container');
+            const options = [
+                { val: 1, label: "1 - Hiçbir Zaman" },
+                { val: 2, label: "2 - Nadiren" },
+                { val: 3, label: "3 - Bazen" },
+                { val: 4, label: "4 - Sıklıkla" },
+                { val: 5, label: "5 - Her Zaman" }
+            ];
+
+            container.innerHTML = emotionalQuestions.map((q, idx) => `
+                <div class="p-4 rounded-xl border border-slate-200/80 bg-slate-50/50 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                    <p class="text-sm font-medium text-slate-700"><span class="font-bold text-purple-700 mr-1.5">${idx + 1}.</span>${q}</p>
+                    <div class="flex flex-wrap gap-1.5 shrink-0">
+                        ${options.map(opt => `
+                            <label class="cursor-pointer">
+                                <input type="radio" name="emo-q-${idx}" value="${opt.val}" ${opt.val === 1 ? 'checked' : ''} onchange="calculateEmotionalScore()" class="peer sr-only">
+                                <span class="px-2.5 py-1.5 rounded-lg text-xs font-medium border border-slate-200 bg-white text-slate-600 peer-checked:bg-purple-600 peer-checked:text-white peer-checked:border-purple-600 transition inline-block">
+                                    ${opt.label}
+                                </span>
+                            </label>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+            calculateEmotionalScore();
+        }
+
+        function calculateEmotionalScore() {
+            let total = 0;
+            for (let i = 0; i < emotionalQuestions.length; i++) {
+                const selected = document.querySelector(`input[name="emo-q-${i}"]:checked`);
+                if (selected) total += parseInt(selected.value);
+            }
+
+            const scoreEl = document.getElementById('emo-total-score');
+            const badgeEl = document.getElementById('emo-level-badge');
+            scoreEl.innerText = `${total} / 50`;
+
+            if (total <= 20) {
+                badgeEl.innerText = "Düşük Eğilim";
+                badgeEl.className = "text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700";
+            } else if (total <= 30) {
+                badgeEl.innerText = "Orta Düzey Eğilim";
+                badgeEl.className = "text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700";
+            } else {
+                badgeEl.innerText = "Yüksek Duygusal Yeme";
+                badgeEl.className = "text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700";
+            }
+            return total;
+        }
+
+        // Değerlendirme Formunu Kaydetme
+        function saveAssessment(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('client-name').value.trim();
+            const age = parseInt(document.getElementById('client-age').value);
+            const gender = document.getElementById('client-gender').value;
+            const pal = parseFloat(document.getElementById('client-pal').value);
+
+            const height = parseFloat(document.getElementById('antro-height').value);
+            const weight = parseFloat(document.getElementById('antro-weight').value);
+            const waist = parseFloat(document.getElementById('antro-waist').value) || 0;
+            const hip = parseFloat(document.getElementById('antro-hip').value) || 0;
+            const fat = parseFloat(document.getElementById('antro-fat').value) || 0;
+            const muscle = parseFloat(document.getElementById('antro-muscle').value) || 0;
+
+            const heightM = height / 100;
+            const bmi = (weight / (heightM * heightM)).toFixed(1);
+            let bmiLabel = "Normal Kilolu";
+            if (bmi < 18.5) bmiLabel = "Zayıf";
+            else if (bmi >= 25 && bmi < 30) bmiLabel = "Fazla Kilolu";
+            else if (bmi >= 30) bmiLabel = "Obez";
+
+            const whr = (waist > 0 && hip > 0) ? (waist / hip).toFixed(2) : "--";
+            let bmr = (10 * weight) + (6.25 * height) - (5 * age) + (gender === "Erkek" ? 5 : -161);
+            bmr = Math.round(bmr);
+            const tdee = Math.round(bmr * pal);
+
+            // Duygusal yeme cevaplarını topla
+            let emoAnswers = [];
+            let emoScore = 0;
+            for (let i = 0; i < emotionalQuestions.length; i++) {
+                const val = parseInt(document.querySelector(`input[name="emo-q-${i}"]:checked`).value);
+                emoAnswers.push(val);
+                emoScore += val;
+            }
+            let emoLevel = "Düşük Eğilim";
+            if (emoScore > 20 && emoScore <= 30) emoLevel = "Orta Düzey Eğilim";
+            else if (emoScore > 30) emoLevel = "Yüksek Duygusal Yeme";
+
+            const newClientRecord = {
+                id: Date.now(),
+                date: new Date().toLocaleDateString('tr-TR'),
+                name,
+                age,
+                gender,
+                pal,
+                antro: { height, weight, waist, hip, fat, muscle, bmi, bmiLabel, whr, bmr, tdee },
+                foodLog: [...currentFoodItems],
+                water: parseFloat(document.getElementById('food-water').value) || 0,
+                foodNotes: document.getElementById('food-notes').value.trim() || "Not girilmedi.",
+                emotional: { score: emoScore, level: emoLevel, answers: emoAnswers }
+            };
+
+            clients.unshift(newClientRecord);
+            resetAssessmentForm();
+            renderClients();
+            updateDashboard();
+            switchTab('clients');
+            showToast(`${name} adlı danışanın değerlendirme formu kaydedildi!`);
+        }
+
+        function resetAssessmentForm() {
+            document.getElementById('assessment-form').reset();
+            currentFoodItems = [];
+            renderFoodLog();
+            calculateAnthropometrics();
+            renderEmotionalQuestions();
+            switchFormSection('antro');
+        }
+
+        // --- 8. DANIŞAN DOSYALARI VE DETAY MODALI ---
+        function renderClients() {
+            const grid = document.getElementById('clients-grid');
+            if (clients.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-12 text-center text-slate-400">Kayıtlı danışan dosyası bulunmuyor.</div>`;
+                return;
+            }
+
+            grid.innerHTML = clients.map(c => {
+                const totalKcal = c.foodLog.reduce((s, i) => s + i.kcal, 0);
+                const emoBadgeColor = c.emotional.score > 30 
+                    ? "bg-rose-50 text-rose-700 border-rose-200" 
+                    : (c.emotional.score > 20 ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-emerald-50 text-emerald-700 border-emerald-200");
+
+                return `
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 flex flex-col justify-between hover:shadow-md transition">
+                        <div>
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-11 h-11 rounded-xl bg-brand-100 text-brand-700 font-bold flex items-center justify-center text-base">
+                                        ${c.name.substring(0, 2).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-slate-800">${c.name}</h3>
+                                        <p class="text-xs text-slate-500">${c.gender}, ${c.age} Yaş • ${c.date}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Özet Metrikler -->
+                            <div class="grid grid-cols-3 gap-2 my-4 text-center">
+                                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                                    <span class="text-[11px] text-slate-400 block">Ağırlık</span>
+                                    <strong class="text-sm text-slate-800">${c.antro.weight} kg</strong>
+                                </div>
+                                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                                    <span class="text-[11px] text-slate-400 block">BKİ</span>
+                                    <strong class="text-sm text-slate-800">${c.antro.bmi}</strong>
+                                </div>
+                                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                                    <span class="text-[11px] text-slate-400 block">24s Alım</span>
+                                    <strong class="text-sm text-brand-700">${totalKcal} kcal</strong>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between text-xs pt-2 border-t border-slate-100">
+                                <span class="text-slate-500">Duygusal Yeme:</span>
+                                <span class="px-2.5 py-0.5 rounded-full font-semibold border ${emoBadgeColor}">${c.emotional.score}/50 (${c.emotional.level})</span>
+                            </div>
+                        </div>
+
+                        <button onclick="openClientDetailModal(${c.id})" class="mt-4 w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold transition flex items-center justify-center gap-2">
+                            <i class="fa-regular fa-file-lines"></i> Tam Değerlendirme Raporunu Aç
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openClientDetailModal(clientId) {
+            const c = clients.find(item => item.id === clientId);
+            if (!c) return;
+
+            document.getElementById('modal-client-title').innerText = `${c.name} - Klinik Değerlendirme Dosyası`;
+            document.getElementById('modal-client-subtitle').innerText = `Değerlendirme Tarihi: ${c.date} | ${c.gender}, ${c.age} Yaş`;
+
+            const totalKcal = c.foodLog.reduce((s, i) => s + i.kcal, 0);
+
+            document.getElementById('modal-client-body').innerHTML = `
+                <!-- Antropometrik Özet -->
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-brand-700 mb-3">1. Antropometrik Ölçümler ve Enerji Gereksinimi</h4>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+                            <span class="text-xs text-slate-400 block">Boy / Kilo</span>
+                            <strong class="text-slate-800">${c.antro.height} cm / ${c.antro.weight} kg</strong>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+                            <span class="text-xs text-slate-400 block">BKİ ve Sınıfı</span>
+                            <strong class="text-slate-800">${c.antro.bmi} (${c.antro.bmiLabel})</strong>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+                            <span class="text-xs text-slate-400 block">Bel / Kalça Oranı</span>
+                            <strong class="text-slate-800">${c.antro.whr} (${c.antro.waist}/${c.antro.hip} cm)</strong>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+                            <span class="text-xs text-slate-400 block">BMH / Günlük Enerji</span>
+                            <strong class="text-brand-700">${c.antro.bmr} / ${c.antro.tdee} kcal</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Besin Tüketim Kaydı -->
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-brand-700">2. 24 Saatlik Besin Tüketim Kaydı</h4>
+                        <span class="text-xs font-bold bg-brand-50 text-brand-800 px-2.5 py-1 rounded-lg">Toplam: ${totalKcal} kcal | Su: ${c.water} L</span>
+                    </div>
+                    <div class="border border-slate-200 rounded-xl overflow-hidden">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 border-b border-slate-200 text-slate-500">
+                                <tr>
+                                    <th class="py-2 px-3">Öğün</th>
+                                    <th class="py-2 px-3">Besin</th>
+                                    <th class="py-2 px-3">Porsiyon</th>
+                                    <th class="py-2 px-3 text-right">Kalori</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${c.foodLog.length > 0 ? c.foodLog.map(f => `
+                                    <tr>
+                                        <td class="py-2 px-3 font-semibold text-slate-700">${f.meal}</td>
+                                        <td class="py-2 px-3 text-slate-600">${f.name}</td>
+                                        <td class="py-2 px-3 text-slate-500">${f.portion}</td>
+                                        <td class="py-2 px-3 text-right font-semibold">${f.kcal} kcal</td>
+                                    </tr>
+                                `).join('') : `<tr><td colspan="4" class="py-4 text-center text-slate-400">Besin kaydı girilmemiş.</td></tr>`}
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2 bg-slate-50 p-2.5 rounded-lg border border-slate-100"><strong>Diyetisyen Notu:</strong> ${c.foodNotes}</p>
+                </div>
+
+                <!-- Duygusal Yeme Testi Sonucu -->
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-purple-700 mb-3">3. Duygusal Yeme Testi Analizi</h4>
+                    <div class="p-4 rounded-xl bg-purple-50/70 border border-purple-100 flex items-center justify-between">
+                        <div>
+                            <p class="font-bold text-purple-950">Değerlendirme Sonucu: ${c.emotional.level}</p>
+                            <p class="text-xs text-purple-800 mt-0.5">10 maddelik duygusal yeme ölçeği üzerinden alınan toplam puan.</p>
+                        </div>
+                        <span class="text-2xl font-bold text-purple-700">${c.emotional.score} <span class="text-xs font-normal">/ 50</span></span>
+                    </div>
+                </div>
+            `;
+
+            const modal = document.getElementById('client-detail-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeClientDetailModal() {
+            const modal = document.getElementById('client-detail-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // Yardımcı Tarih Formatlayıcı
+        function formatDateTR(dateStr) {
+            if (!dateStr) return "";
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return dateStr;
+            return `${parts[2]}.${parts[1]}.${parts[0]}`;
+        }
+    </script>
+</body>
+</html>
